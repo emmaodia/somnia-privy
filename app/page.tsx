@@ -12,11 +12,8 @@ import { somniaTestnet } from 'viem/chains';
 
 export default function Home() {
   const { ready, authenticated, user, logout } = usePrivy();
-  const {
-    loginWithCrossAppAccount,
-    // sendTransaction,
-  } = useCrossAppAccounts();
-  const { sendTransaction } = useSendTransaction();
+  const { loginWithCrossAppAccount, sendTransaction } = useCrossAppAccounts();
+  // const { sendTransaction } = useSendTransaction();
 
   const [loginError, setLoginError] = useState<string | null>(null);
   const [hydrated, setHydrated] = useState(false);
@@ -56,13 +53,14 @@ export default function Home() {
       );
 
       console.log(globalWallet);
-      const wallet = globalWallet?.smartWallets?.[0];
+      const wallet = globalWallet?.embeddedWallets?.[0].address;
       console.log(wallet);
-      if (wallet?.address) {
-        setWalletAddress(wallet.address);
+      setWalletAddress(wallet);
+      if (wallet) {
+        setWalletAddress(wallet);
         setHydrated(true);
-        fetchBalance(wallet.address);
-        console.log(wallet.address);
+        fetchBalance(wallet);
+        console.log(wallet);
       } else if (user?.wallet?.address) {
         setWalletAddress(user.wallet.address);
         setHydrated(true);
@@ -90,11 +88,13 @@ export default function Home() {
     if (!walletAddress) return;
     console.log(walletAddress);
 
+    const txn = {
+      to: '0xb6e4fa6ff2873480590c68D9Aa991e5BB14Dbf03',
+      value: 1000000000000000,
+      chainId: 50312,
+    };
     try {
-      const tx = await sendTransaction({
-        to: '0xb6e4fa6ff2873480590c68D9Aa991e5BB14Dbf03',
-        value: 1000000000000000,
-      });
+      const tx = await sendTransaction(txn, { address: walletAddress });
       console.log('TX Sent:', tx);
       if (walletAddress) fetchBalance(walletAddress);
     } catch (err) {
